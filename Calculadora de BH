@@ -1,0 +1,169 @@
+ <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planilha de Horas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        input {
+            width: 80%;
+            padding: 5px;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        @media (max-width: 600px) {
+            th, td {
+                font-size: 12px;
+                padding: 8px;
+            }
+            input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2>Planilha de Horas</h2>
+    <label for="funcionario">Funcionário: </label>
+    <input type="text" id="funcionario" placeholder="Nome do Funcionário">
+
+    <table>
+        <thead>
+            <tr>
+                <th>Mês</th>
+                <th>Horas</th>
+                <th>Data</th>
+                <th>Justificativa (Horas)</th>
+            </tr>
+        </thead>
+        <tbody id="tabelaHoras">
+            <script>
+                const meses = [
+                    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                ];
+                const tabela = document.getElementById('tabelaHoras');
+                meses.forEach(mes => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${mes}</td>
+                                     <td><input type="text" class="horas" placeholder="hh:mm" onkeydown="navegar(event, 'horas')"></td>
+                                     <td><input type="date" class="data"></td>
+                                     <td><input type="text" class="justificativa" placeholder="hh:mm" onkeydown="navegar(event, 'justificativa')"></td>`;
+                    tabela.appendChild(row);
+                });
+            </script>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td><strong>Saldo Total</strong></td>
+                <td id="saldoTotal">0:00</td>
+                <td>
+                    <button onclick="zerarDatas()">Limpar Datas</button>
+                </td>
+                <td id="justificativaTotal">0:00</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="button-container">
+        <div>
+            <button onclick="calcularSaldo('horas')">Calcular Saldo Horas</button>
+            <button onclick="zerarCampos('horas')">Zerar Horas</button>
+        </div>
+        <div>
+            <button onclick="calcularSaldo('justificativa')">Calcular Saldo Justificativa</button>
+            <button onclick="zerarCampos('justificativa')">Zerar Justificativa</button>
+        </div>
+    </div>
+
+    <script>
+        function navegar(event, tipo) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const inputs = document.querySelectorAll('.' + tipo);
+                const currentIndex = Array.from(inputs).indexOf(event.target);
+                const nextInput = inputs[currentIndex + 1];
+                if (nextInput) {
+                    nextInput.focus();
+                }
+            }
+        }
+
+        function calcularSaldo(tipo) {
+            calcularTotal(tipo);
+        }
+
+        function calcularTotal(tipo) {
+            const inputs = document.querySelectorAll('.' + tipo);
+            let totalMinutos = 0;
+
+            inputs.forEach(input => {
+                const valor = input.value.trim();
+                if (valor) {
+                    const isNegative = valor.startsWith('-');
+                    const [horas, minutos] = valor.replace('-', '').split(':').map(Number);
+                    const total = (horas * 60) + (minutos || 0);
+                    totalMinutos += isNegative ? -total : total;
+                }
+            });
+
+            const saldoHoras = Math.floor(Math.abs(totalMinutos) / 60);
+            const saldoMinutos = Math.abs(totalMinutos) % 60;
+
+            const totalElement = tipo === 'horas' ? document.getElementById('saldoTotal') : document.getElementById('justificativaTotal');
+            totalElement.textContent = (totalMinutos < 0 ? '-' : '') + saldoHoras + ':' + String(saldoMinutos).padStart(2, '0');
+        }
+
+        function zerarCampos(tipo) {
+            const inputs = document.querySelectorAll('.' + tipo);
+            inputs.forEach(input => {
+                input.value = '';
+            });
+            const totalElement = tipo === 'horas' ? document.getElementById('saldoTotal') : document.getElementById('justificativaTotal');
+            totalElement.textContent = '0:00';
+        }
+
+        function zerarDatas() {
+            const inputsData = document.querySelectorAll('.data');
+            inputsData.forEach(input => {
+                input.value = '';
+            });
+        }
+    </script>
+</body>
+</html>
